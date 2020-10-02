@@ -38,11 +38,10 @@ def getCookie():
         request_header = generaterHeader("GET", '/accounts/login/?next=/fakebook/', None, None)
         client_socket.sendall(request_header)
 
-        response = []
         while True:
             recv = client_socket.recv(2048)
             if not recv:
-                break
+                continue
             response = recv.decode().split('\r\n\r\n')
             # print(response[0])
 
