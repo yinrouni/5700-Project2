@@ -2,7 +2,6 @@ import re
 import socket
 import traceback
 from queue import Queue
-import sys
 
 HOST = 'cs5700fa20.ccs.neu.edu'  # Server hostname or IP address
 PORT = 80  # Port
@@ -45,7 +44,7 @@ def getCookie():
             if not recv:
                 break
             response = recv.decode().split('\r\n\r\n')
-            print(response)
+            print(response[0])
 
         csrfToken = re.findall('csrftoken=[^;]*;', response[0])[0]
         sessionId = re.findall('sessionid=[^;]*;', response[0])[0]
@@ -111,15 +110,18 @@ def statusHandler(response):
 
 
 def crawl(cookie):
+    cnt = 0
     if frontier.empty():
         return
 
-    path = frontier.get()
-    while True:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_address = (socket.gethostbyname(HOST), PORT)
-        response = []
-        try:
+    while (not frontier.empty()) and cnt < 5:
+        path = frontier.get()
+        # print(path)
+        while True:
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_address = (socket.gethostbyname(HOST), PORT)
+            response = []
+            try:
                 client_socket.connect(server_address)
                 header = generaterHeader("GET", path, cookie, None)
 
@@ -130,44 +132,39 @@ def crawl(cookie):
                     if not recv:
                         continue
                     response = recv.decode().split('\r\n\r\n')
-                    break  
-        except Exception:
-            traceback.format_exc()
-        finally:
-            client_socket.close()
-        if response:
-            status = statusHandler(response[0])
-            if status == "500":
-                continue
+                    break
+            except Exception:
+                traceback.format_exc()
+            finally:
+                client_socket.close()
+            if response:
+                status = statusHandler(response[0])
+                if status == "500":
+                    continue
+                else:
+                    break
             else:
-                break
-        else:
-            continue
-   
-
-    if len(response)== 0:
-        return response
-        
-    status = statusHandler(response[0])
-    if status == "200":
-        links = re.findall('<a href="(/[^>]+)">',response[1])
-        getSecret(response[1])
-        for path in links:
-            if path in urls:
                 continue
-            frontier.put(path)
-            urls.add(path)
-            crawl(cookie)
-    elif status == "301":
-        print("301")
-    elif status == "404" or status == "403":
-        print("not found")
 
-    return response
+        if len(response) == 0:
+            return response
 
+        status = statusHandler(response[0])
+        if status == "200":
+            links = re.findall('<a href="(/[^>]+)">', response[1])
+            cnt += getSecret(response[1])
+            for path in links:
+                if path in urls:
+                    continue
+                frontier.put(path)
+                urls.add(path)
+                # crawl(cookie)
+        elif status == "301":
+            print("301")
+        elif status == "404" or status == "403":
+            print("not found")
 
-
-
+        # return response
 
     # links = re.findall('<a href="(/[^>]+)">', html)
     # getSecret(html)
@@ -176,7 +173,6 @@ def crawl(cookie):
     #     if (path in urls) or (path in visited):
     #         continue
     #     frontier.put(path)
-
 
     # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # server_address = (socket.gethostbyname(HOST), PORT)
@@ -198,15 +194,14 @@ def renewCookie(cookie, header):
 
 
 def getSecret(content):
-    for secret in re.findall('<h2 class=\'secret_flag\' style="color:red">(.+)</h2>', content):
+    cnt = 0
+    for secret in re.findall('<h2 class=\'secret_flag\' style="color:red">FLAG: ([^<]+)</h2>', content):
+        cnt += 1
         print(secret)
+    return cnt
 
-sys.setrecursionlimit(1000000)
+
 cookie = getCookie()
 if cookie:
-    print(cookie)
     cookie = login(cookie)
-    print(cookie)
     crawl(cookie)
-
-
