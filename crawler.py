@@ -1,7 +1,7 @@
 import re
 import socket
 import traceback
-from queue import Queue
+from multiprocessing import Queue
 
 HOST = 'cs5700fa20.ccs.neu.edu'  # Server hostname or IP address
 PORT = 80  # Port
@@ -100,6 +100,8 @@ def login(cookie):
         # print(response[0])
         # print(response[1])
         # return response
+
+
 def statusHandler(response):
     status = response.split('\r\n')[0]
     status = status.split(" ")[1]
