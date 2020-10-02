@@ -44,14 +44,12 @@ def getCookie():
             if not recv:
                 break
             response = recv.decode().split('\r\n\r\n')
-            print(response[0])
+            # print(response[0])
 
-        csrfToken = re.findall('csrftoken=[^;]*;', response[0])[0]
-        sessionId = re.findall('sessionid=[^;]*;', response[0])[0]
+            csrfToken = re.findall('csrftoken=[^;]*;', response[0])[0]
+            sessionId = re.findall('sessionid=[^;]*;', response[0])[0]
 
-        # print(csrfToken)
-        # print(sessionId)
-        return csrfToken + sessionId
+            return csrfToken + sessionId
     except Exception:
         print(traceback.format_exc())
 
