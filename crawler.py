@@ -45,6 +45,7 @@ def getCookie():
             if not recv:
                 break
             response = recv.decode().split('\r\n\r\n')
+            print(response)
 
         csrfToken = re.findall('csrftoken=[^;]*;', response[0])[0]
         sessionId = re.findall('sessionid=[^;]*;', response[0])[0]
@@ -103,7 +104,10 @@ def login(cookie):
         # print(response[0])
         # print(response[1])
         # return response
-
+def statusHandler(response):
+    status = response.split('\r\n')[0]
+    status = status.split(" ")[1]
+    return status
 
 
 def crawl(cookie):
@@ -111,32 +115,41 @@ def crawl(cookie):
         return
 
     path = frontier.get()
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = (socket.gethostbyname(HOST), PORT)
-    response = []
+    while True:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_address = (socket.gethostbyname(HOST), PORT)
+        response = []
+        try:
+                client_socket.connect(server_address)
+                header = generaterHeader("GET", path, cookie, None)
 
-    try:
-        client_socket.connect(server_address)
-        header = generaterHeader("GET", path, cookie, None)
-
-        client_socket.sendall(header)
-        while True:
-            recv = client_socket.recv(2048)
-
-            if not recv:
+                header = generaterHeader("GET", path, cookie, None)
+                client_socket.sendall(header)
+                while True:
+                    recv = client_socket.recv(2048)
+                    if not recv:
+                        continue
+                    response = recv.decode().split('\r\n\r\n')
+                    break  
+        except Exception:
+            traceback.format_exc()
+        finally:
+            client_socket.close()
+        if response:
+            status = statusHandler(response[0])
+            if status == "500":
                 continue
-            response = recv.decode().split('\r\n\r\n')
-            break
-    except Exception:
-        traceback.format_exc()
-    finally:
-        client_socket.close()
+            else:
+                break
+        else:
+            continue
+   
 
-        if len(response)== 0:
-            return response
-        # print(response[0])
-        # print(response[1])
-
+    if len(response)== 0:
+        return response
+        
+    status = statusHandler(response[0])
+    if status == "200":
         links = re.findall('<a href="(/[^>]+)">',response[1])
         getSecret(response[1])
         for path in links:
@@ -144,10 +157,13 @@ def crawl(cookie):
                 continue
             frontier.put(path)
             urls.add(path)
-            print(path)
             crawl(cookie)
+    elif status == "301":
+        print("301")
+    elif status == "404" or status == "403":
+        print("not found")
 
-        return response
+    return response
 
 
 
@@ -185,7 +201,7 @@ def getSecret(content):
     for secret in re.findall('<h2 class=\'secret_flag\' style="color:red">(.+)</h2>', content):
         print(secret)
 
-sys.setrecursionlimit(3000)
+sys.setrecursionlimit(1000000)
 cookie = getCookie()
 if cookie:
     print(cookie)
