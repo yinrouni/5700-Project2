@@ -124,7 +124,6 @@ def crawl(cookie):
                 client_socket.connect(server_address)
                 header = generaterHeader("GET", path, cookie, None)
 
-                header = generaterHeader("GET", path, cookie, None)
                 client_socket.sendall(header)
                 while True:
                     recv = client_socket.recv(2048)
