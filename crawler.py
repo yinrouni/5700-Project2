@@ -1,12 +1,16 @@
 import re
 import socket
 import traceback
-from multiprocessing import Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+
 
 HOST = 'cs5700fa20.ccs.neu.edu'  # Server hostname or IP address
 PORT = 80  # Port
 urls = set()
-frontier = Queue()
+frontier = queue.Queue()
 visited = set()
 
 
