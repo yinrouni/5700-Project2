@@ -1,5 +1,6 @@
 import re
 import socket
+import sys
 import traceback
 try:
     import queue
@@ -218,8 +219,13 @@ def getSecret(content):
     return cnt
 
 
-cookie = getCookie()
-if cookie:
-    cookie = login(cookie)
-    crawl(cookie)
-    
+if __name__ == '__main__':
+    username = sys.argv[1]
+    password = sys.argv[2]
+
+    # TODO: login using crendential
+    cookie = getCookie()
+    if cookie:
+        cookie = login(cookie)
+        crawl(cookie)
+
