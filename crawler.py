@@ -91,15 +91,15 @@ def login(cookie,username,password):
 
 
 def statusHandler(response):
-    status = response.split('\r\n')[0]
-    status = status.split(" ")[1]
-    return status
+    status = re.findall(r'HTTP/1.1\s([0-9]*)',response)
+    return status[0]
 
 def reDirectPath(response):
-    path = response.split('\r\n')[0]
-    path = path.split(" ")[6]
-    path = path.split(HOST)[1]
-    return path
+    path = re.findall(r'Location: http://cs5700fa20.ccs.neu.edu(.*)',response)
+    if path:
+        return path[0]
+    else:
+        return '/fakebook/'
 
 def getRsponse(path, cookie):
      while True:
@@ -153,20 +153,17 @@ def crawl(cookie):
             return response
 
         status = statusHandler(response[0])
+        
         if status == "200":
             cnt += getSecret(response[1])
             getLinks(response[1])
         elif status == "301":
-            print("Status: 301 Moved Permanently, redirecting...")
             path = reDirectPath(response[0])
             response = getRsponse(path,cookie)
             getLinks(response[1])
         elif status == "404" or status == "403":
-            print("Not found page, pass")
-        elif status == "302":
-            print("Please enter a correct username and password. Note that both fields are case-sensitive.")
-        else:
-            print(status)
+            pass
+        
 
 
 
@@ -189,7 +186,6 @@ if __name__ == '__main__':
     username = sys.argv[1]
     password = sys.argv[2]
 
-    # TODO: login using crendential
     cookie = getCookie()
     if cookie:
         cookie = login(cookie,username,password)
