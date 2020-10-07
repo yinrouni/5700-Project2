@@ -11,7 +11,6 @@ HOST = 'cs5700fa20.ccs.neu.edu'  # Server hostname or IP address
 PORT = 80  # Port
 urls = set()
 frontier = queue.Queue()
-visited = set()
 
 
 def generaterHeader(method, path, cookie, data):
@@ -111,20 +110,18 @@ def statusHandler(response):
     status = status.split(" ")[1]
     return status
 
+def reDirectPath(response):
+    path = response.split('\r\n')[0]
+    path = path.split(" ")[6]
+    path = path.split(HOST)[1]
+    return path
 
-def crawl(cookie):
-    cnt = 0
-    if frontier.empty():
-        return
-
-    while (not frontier.empty()) and cnt < 5:
-        path = frontier.get()
-        # print(path)
-        while True:
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_address = (socket.gethostbyname(HOST), PORT)
-            response = []
-            try:
+def getRsponse(path, cookie):
+     while True:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_address = (socket.gethostbyname(HOST), PORT)
+        response = []
+        try:
                 client_socket.connect(server_address)
                 header = generaterHeader("GET", path, cookie, None)
 
@@ -134,37 +131,55 @@ def crawl(cookie):
                     if not recv:
                         continue
                     response = recv.decode().split('\r\n\r\n')
-                    break
-            except Exception:
-                traceback.format_exc()
-            finally:
-                client_socket.close()
-            if response:
-                status = statusHandler(response[0])
-                if status == "500":
-                    continue
-                else:
-                    break
-            else:
+                    break  
+        except Exception:
+            traceback.format_exc()
+        finally:
+            client_socket.close()
+        if response:
+            status = statusHandler(response[0])
+            if status == "500":
                 continue
+            else:
+                return response
+        else:
+            continue
+
+def getLinks(response):
+    links = re.findall('<a href="(/[^>]+)">', response)
+    for path in links:
+        if path in urls:
+            continue
+        frontier.put(path)
+        urls.add(path)
+
+
+def crawl(cookie):
+    cnt = 0
+    if frontier.empty():
+        return
+
+    while (not frontier.empty()) and cnt < 5:
+        path = frontier.get()
+
+        response = getRsponse(path,cookie)
 
         if len(response) == 0:
             return response
 
         status = statusHandler(response[0])
         if status == "200":
-            links = re.findall('<a href="(/[^>]+)">', response[1])
             cnt += getSecret(response[1])
-            for path in links:
-                if path in urls:
-                    continue
-                frontier.put(path)
-                urls.add(path)
-                # crawl(cookie)
+            getLinks(response[1])
         elif status == "301":
-            print("301")
+            print("Status: 301 Moved Permanently, redirecting...")
+            path = reDirectPath(response[0])
+            response = getRsponse(path,cookie)
+            getLinks(response[1])
         elif status == "404" or status == "403":
-            print("not found")
+            print("not found page, pass")
+        else:
+            print(status)
 
         # return response
 
@@ -207,3 +222,4 @@ cookie = getCookie()
 if cookie:
     cookie = login(cookie)
     crawl(cookie)
+    
