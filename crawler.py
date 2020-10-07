@@ -60,16 +60,14 @@ def getCookie():
         client_socket.close()
 
 
-def login(cookie):
+def login(cookie,username,password):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (socket.gethostbyname(HOST), PORT)
+    str = '%2Ffakebook%2F'
+    data = 'username=%s&password=%s&next=%s&csrfmiddlewaretoken=%s' % (username, password, str, cookie.split(";")[0].split('=')[1])
     try:
-        client_socket.connect(server_address)
-
-        # TODO: replace credentials
-        request_header = generaterHeader("POST", '/accounts/login/', cookie,
-                                         'username=001445026&password=JHXZX0UI&next=%2Ffakebook%2F&csrfmiddlewaretoken=' +
-                                         cookie.split(";")[0].split('=')[1])
+        client_socket.connect(server_address)                                             
+        request_header = generaterHeader("POST", '/accounts/login/', cookie, data)
         client_socket.sendall(request_header)
 
         response = []
@@ -178,7 +176,9 @@ def crawl(cookie):
             response = getRsponse(path,cookie)
             getLinks(response[1])
         elif status == "404" or status == "403":
-            print("not found page, pass")
+            print("Not found page, pass")
+        elif status == "302":
+            print("Please enter a correct username and password. Note that both fields are case-sensitive.")
         else:
             print(status)
 
@@ -226,6 +226,6 @@ if __name__ == '__main__':
     # TODO: login using crendential
     cookie = getCookie()
     if cookie:
-        cookie = login(cookie)
+        cookie = login(cookie,username,password)
         crawl(cookie)
 
