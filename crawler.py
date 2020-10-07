@@ -47,7 +47,6 @@ def getCookie():
             if not recv:
                 continue
             response = recv.decode().split('\r\n\r\n')
-            # print(response[0])
 
             csrfToken = re.findall('csrftoken=[^;]*;', response[0])[0]
             sessionId = re.findall('sessionid=[^;]*;', response[0])[0]
@@ -88,20 +87,7 @@ def login(cookie,username,password):
     finally:
         client_socket.close()
 
-        # login_header = generaterHeader("GET", "/fakebook/", cookie, None)
-        #
-        # client_socket.sendall(login_header)
-        # while True:
-        #     recv = client_socket.recv(2048)
-        #
-        #     if not recv:
-        #         continue
-        #     response = recv.decode().split('\r\n\r\n')
-        #
-        #     break
-        # print(response[0])
-        # print(response[1])
-        # return response
+
 
 
 def statusHandler(response):
@@ -182,26 +168,6 @@ def crawl(cookie):
         else:
             print(status)
 
-        # return response
-
-    # links = re.findall('<a href="(/[^>]+)">', html)
-    # getSecret(html)
-    # for path in links:
-    #     print(path)
-    #     if (path in urls) or (path in visited):
-    #         continue
-    #     frontier.put(path)
-
-    # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # server_address = (socket.gethostbyname(HOST), PORT)
-    #
-    # try:
-    #     client_socket.connect(server_address)
-    #
-    # except Exception:
-    #     traceback.format_exc()
-    # finally:
-    #     client_socket.close()
 
 
 def renewCookie(cookie, header):
