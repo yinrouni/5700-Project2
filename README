@@ -1,4 +1,4 @@
-Project 1
+Project 2
 
 Approach
 
@@ -19,6 +19,16 @@ point to pages on cs5700fa20.ccs.neu.edu by limit the links using regex /{path}/
 To track the frontier, a queue is a structure we used to keep the urls to be crawled. And we also use a set to track all
 the valid paths. When it comes to another link, determine if it's in the set already. If so, it means it has been crawled;
 Otherwise, add it to the queue and get it ready to be crawled later. In this way, the loops can be avoided.
+
+In addition to crawling Fakebook, our web crawler should be able to correctly handle different HTTP status codes. Function
+statusHandler() will use regex to find the status code after send GET request and get the content of the web page. According
+to different status codes, our web crawler will do different actions:
+1. 500 - Internal Server Error: our web crawler will the request for the URL by using while loop until the request is 
+successful. 
+2. 301 - Moved Permanently: our web crawler will use regex to get new URL given by the server and try the request again 
+with new URL
+3. 403 - Forbidden and 404 - Not Found: our crawler will  abandon the URL that generated the error code.
+4. 200 OK: our crawler will go through all the links available on the page and add them to frontier.
 
 Challenge
 
@@ -42,6 +52,10 @@ Test for the number and format of arguments in the executable file is also neces
 
 Rouni Yin implements the login process and cookie management in the program, setting up the set and queue for the crawler,
 and generation for the requests used in the crawler.
+
+Chihao Sun implements the status code handler to check status code and Take different actions according to different
+status codes. And implements the code that make our web crawler execute on the command line using the following syntax:
+./webcrawler [username] [password]
 
 
 
