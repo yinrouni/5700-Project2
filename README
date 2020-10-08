@@ -1,0 +1,48 @@
+Project 1
+
+Approach
+
+This program works as a web crawler on Fakebook, finding out the 5 secret flags hidden there. It can be divided into  2
+parts: login and crawl.
+
+Login is required for crawling the flags using the given credentials. Otherwise, crawling would fail.
+In this program, we assume that the log-in form for Fakebook is available at
+http://cs5700fa20.ccs.neu.edu/accounts/login/?next=/fakebook/. Set up a connect to this url via a socket, and send a POST
+request along with the form data, including credential and csrftoken, to successfully log in. In the response header,
+we can get the sessionid, which is necessary for the following crawling. Start crawling from /fakebook/.
+
+To do crawling, send GET request along with the csrftoken and sessionid mentioned before as the cookie, getting the
+content of the web page and using regex to find the formatted flags. The crawler should go through all the links available
+on the page. But web pages may include links that point to arbitrary domains. Crawler should only traverse URLs that
+point to pages on cs5700fa20.ccs.neu.edu by limit the links using regex /{path}/, which must be paths in the target domain.
+
+To track the frontier, a queue is a structure we used to keep the urls to be crawled. And we also use a set to track all
+the valid paths. When it comes to another link, determine if it's in the set already. If so, it means it has been crawled;
+Otherwise, add it to the queue and get it ready to be crawled later. In this way, the loops can be avoided.
+
+Challenge
+
+- In the program, a synchronized queue is used to track the frontier. In Python3, it's imported from queue. But the
+Python2.7 installed on the Linux machine, it should be imported from Queue, and the constructor is Queue.Queue()
+
+- Cookie Management: Fakebook uses cookies to track whether clients are logged in to the site. If the crawler
+successfully logs in to Fakebook using an HTTP POST, Fakebook will return a sessionid cookie. The crawler stores this
+cookie, and submit it along with each HTTP GET request as it crawls Fakebook. If the crawler fails to handle cookies
+properly, then the software will not be able to successfully crawl Fakebook.
+
+- For POST, The Content-Length header is mandatory for messages with entity bodies, unless the message is transported
+using chunked encoding. Content-Length is needed to detect premature message truncation when servers crash and to
+properly segment messages that share a persistent connection.
+
+Test
+
+To test the connect, with the help of try catch block, we can simply detect if there is failure. When the connection is
+set up, print message send/received to keep track of the communication.
+Test for the number and format of arguments in the executable file is also necessary.
+
+Rouni Yin implements the login process and cookie management in the program, setting up the set and queue for the crawler,
+and generation for the requests used in the crawler.
+
+
+
+
