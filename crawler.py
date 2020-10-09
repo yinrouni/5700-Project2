@@ -152,7 +152,7 @@ def getRsponse(path, cookie):
     Returns:
         String return a response from server 
     """
-     while True:
+    while True:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_address = (socket.gethostbyname(HOST), PORT)
         response = []
